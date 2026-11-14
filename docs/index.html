@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111214">
+<meta name="robots" content="noindex">
+<title>Diseños del día</title>
+<style>
+:root{
+  --bg:#f5f5f2; --surface:#ffffff; --text:#17181a; --muted:#6b6d72; --line:#e3e3df;
+  --accent:#0f8a5f; --accent-ink:#ffffff; --danger:#c2412d; --chip:#efefeb; --warn:#9a6700;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111214; --surface:#1b1c1f; --text:#ededeb; --muted:#9a9ca1; --line:#2a2b2f;
+    --accent:#2fbf87; --accent-ink:#0b1410; --danger:#ef7a66; --chip:#26272b; --warn:#e3b341;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111214; --surface:#1b1c1f; --text:#ededeb; --muted:#9a9ca1; --line:#2a2b2f;
+  --accent:#2fbf87; --accent-ink:#0b1410; --danger:#ef7a66; --chip:#26272b; --warn:#e3b341;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding-bottom:env(safe-area-inset-bottom)}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);
+  padding:calc(10px + env(safe-area-inset-top)) 16px 0}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+h1{font-size:18px;margin:0}
+.sub{color:var(--muted);font-size:12px}
+nav{display:flex;gap:4px;overflow-x:auto;margin-top:8px;scrollbar-width:none}
+nav button{flex:none;border:0;background:none;color:var(--muted);padding:10px 10px;font:inherit;font-weight:600;
+  border-bottom:2px solid transparent;cursor:pointer}
+nav button[aria-selected="true"]{color:var(--text);border-color:var(--accent)}
+.count{font-weight:500;color:var(--muted);margin-left:4px}
+main{max-width:1100px;margin:0 auto;padding:14px 16px 40px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.card a.img{display:block;aspect-ratio:4/3;background:var(--chip)}
+.card img{width:100%;height:100%;object-fit:cover;display:block}
+.body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.title{font-weight:650;font-size:15px;color:var(--text);text-decoration:none;line-height:1.3}
+.meta{color:var(--muted);font-size:12.5px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{background:var(--chip);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:600}
+.chip.ok{color:var(--accent)} .chip.ams{color:var(--warn)}
+.actions{display:flex;gap:8px;margin-top:auto;padding-top:6px}
+.btn{flex:1;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:10px;
+  padding:11px 8px;font:inherit;font-weight:650;cursor:pointer;min-height:44px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--danger)}
+.btn:active{transform:scale(.98)}
+.day{margin:18px 0 8px;font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.empty{color:var(--muted);text-align:center;padding:50px 10px}
+.banner{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:14px}
+.banner input{width:100%;margin:8px 0;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:inherit}
+.icon-btn{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:10px;padding:6px 10px;font:inherit;cursor:pointer}
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);
+  padding:10px 14px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:calc(100% - 32px)}
+#toast.show{opacity:1}
+details summary{cursor:pointer;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <div>
+      <h1>Diseños del día</h1>
+      <div class="sub" id="updated">Cargando…</div>
+    </div>
+    <button class="icon-btn" id="settingsBtn" aria-label="Configuración">⚙︎</button>
+  </div>
+  <nav role="tablist">
+    <button role="tab" data-tab="today" aria-selected="true">Nuevos<span class="count" id="c-today"></span></button>
+    <button role="tab" data-tab="save">Por imprimir<span class="count" id="c-save"></span></button>
+    <button role="tab" data-tab="printed">Impresos<span class="count" id="c-printed"></span></button>
+    <button role="tab" data-tab="discard">Descartados<span class="count" id="c-discard"></span></button>
+  </nav>
+</header>
+<main>
+  <div id="setup" class="banner" hidden>
+    <strong>Conecta tu token de GitHub</strong> para que tus Guardar/Descartar se guarden y la app aprenda.
+    Solo se guarda en este dispositivo.
+    <input id="tokenInput" type="password" autocomplete="off" placeholder="github_pat_…">
+    <button class="btn primary" id="tokenSave">Guardar token</button>
+    <details style="margin-top:8px"><summary>¿Cómo lo creo?</summary>
+      <p>En GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token.
+      Repository access: solo este repositorio. Permissions → Contents: <b>Read and write</b>.</p>
+    </details>
+  </div>
+  <div id="list"></div>
+</main>
+<div id="toast" role="status"></div>
+<script>
+(() => {
+  const STATE_FILE = "docs/data/state.json";
+  const host = location.hostname;                 // <owner>.github.io
+  const owner = host.endsWith(".github.io") ? host.split(".")[0] : "";
+  const repo = location.pathname.split("/").filter(Boolean)[0] || "";
+  const ls = {
+    get(k){ try { return localStorage.getItem(k); } catch { return null; } },
+    set(k,v){ try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k,v); } catch {} }
+  };
+
+  let token = ls.get("gh_token") || "";
+  let feed = { days: [] };
+  let state = { decisions: {} };
+  let sha = null;
+  let tab = ls.get("tab") || "today";
+  const pending = new Map();      // id -> decisión (o null para borrar) aún no guardada
+  let saveTimer = null, saving = false;
+
+  const $ = s => document.querySelector(s);
+  const toast = (msg) => { const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 2200); };
+
+  const b64encode = s => btoa(unescape(encodeURIComponent(s)));
+  const b64decode = s => decodeURIComponent(escape(atob(s.replace(/\n/g, ""))));
+
+  async function gh(path, opts = {}) {
+    const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/${path}`, {
+      ...opts,
+      headers: { "Accept": "application/vnd.github+json", "Authorization": `Bearer ${token}`,
+                 "X-GitHub-Api-Version": "2022-11-28", ...(opts.headers || {}) },
+      cache: "no-store",
+    });
+    return r;
+  }
+
+  async function loadState() {
+    if (token && owner) {
+      const r = await gh(`contents/${STATE_FILE}`);
+      if (r.ok) {
+        const j = await r.json();
+        sha = j.sha;
+        state = JSON.parse(b64decode(j.content));
+        return;
+      }
+      if (r.status === 401 || r.status === 403) { toast("Token inválido o sin permiso"); }
+    }
+    try {
+      const r = await fetch(`data/state.json?t=${Date.now()}`, { cache: "no-store" });
+      if (r.ok) state = await r.json();
+    } catch {}
+  }
+
+  async function loadFeed() {
+    const r = await fetch(`data/feed.json?t=${Date.now()}`, { cache: "no-store" });
+    if (r.ok) feed = await r.json();
+  }
+
+  function decisionsView() {
+    const d = { ...(state.decisions || {}) };
+    for (const [id, v] of pending) { if (v === null) delete d[id]; else d[id] = v; }
+    return d;
+  }
+
+  function decide(item, action) {
+    const id = String(item.id);
+    const prev = decisionsView()[id];
+    const base = prev ? { ...prev } : item;
+    const v = action ? {
+      action, ts: new Date().toISOString(),
+      id: item.id, title: base.title, url: base.url, cover: base.cover, creator: base.creator,
+      printer: base.printer, hours: base.hours, ams: base.ams, plates: base.plates,
+      category: base.category, likes: base.likes, features: base.features || []
+    } : null;
+    pending.set(id, v);
+    render();
+    if (!token) { toast("Sin token: no se guardará. Toca ⚙︎"); return; }
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(flush, 1200);
+  }
+
+  async function flush() {
+    if (saving || !pending.size) return;
+    saving = true;
+    const batch = new Map(pending);
+    try {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const next = { ...state, decisions: { ...(state.decisions || {}) } };
+        for (const [id, v] of batch) { if (v === null) delete next.decisions[id]; else next.decisions[id] = v; }
+        next.updated = new Date().toISOString();
+        const body = { message: "Actualizar decisiones", content: b64encode(JSON.stringify(next, null, 1)) };
+        if (sha) body.sha = sha;
+        const r = await gh(`contents/${STATE_FILE}`, { method: "PUT", body: JSON.stringify(body),
+                                                       headers: { "Content-Type": "application/json" } });
+        if (r.ok) {
+          const j = await r.json();
+          sha = j.content.sha; state = next;
+          for (const [id, v] of batch) if (pending.get(id) === v) pending.delete(id);
+          break;
+        }
+        if (r.status === 409 || r.status === 422) { await loadState(); continue; }  // alguien escribió antes
+        throw new Error(`GitHub ${r.status}`);
+      }
+    } catch (e) {
+      toast("No se pudo guardar; reintento en un momento");
+      setTimeout(flush, 8000);
+    } finally {
+      saving = false;
+      if (pending.size) { clearTimeout(saveTimer); saveTimer = setTimeout(flush, 1200); }
+    }
+  }
+
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  const hours = h => h < 1 ? `${Math.round(h * 60)} min` : `${(+h).toFixed(1)} h`;
+
+  function card(item, mode) {
+    const amsChip = item.ams ? `<span class="chip ams">AMS</span>` : `<span class="chip ok">Sin AMS</span>`;
+    const btns = {
+      today:   [["save", "✓ Guardar", "primary"], ["discard", "✕ Descartar", "danger"]],
+      save:    [["printed", "Impreso", "primary"], ["discard", "Descartar", "danger"]],
+      printed: [["save", "Volver a imprimir", ""]],
+      discard: [["save", "Guardar", "primary"], [null, "Reconsiderar", ""]],
+    }[mode];
+    return `<article class="card" data-id="${esc(item.id)}">
+      <a class="img" href="${esc(item.url)}" target="_blank" rel="noopener"><img loading="lazy" src="${esc(item.cover)}" alt=""></a>
+      <div class="body">
+        <a class="title" href="${esc(item.url)}" target="_blank" rel="noopener">${esc(item.title)}</a>
+        <div class="meta">${esc(item.creator)} · ${esc(item.category || "")}</div>
+        <div class="chips">
+          <span class="chip">${esc(item.printer || "A1")}</span>
+          <span class="chip">${hours(item.hours || 0)}</span>
+          ${amsChip}
+          ${item.plates > 1 ? `<span class="chip">${item.plates} camas</span>` : ""}
+          <span class="chip">♥ ${item.likes ?? 0}</span>
+        </div>
+        <div class="actions">${btns.map(([a, label, cls]) =>
+          `<button class="btn ${cls}" data-action="${a ?? ""}">${label}</button>`).join("")}</div>
+      </div></article>`;
+  }
+
+  let index = new Map();
+  function render() {
+    const dec = decisionsView();
+    index = new Map();
+    const counts = { today: 0, save: 0, printed: 0, discard: 0 };
+    let html = "";
+
+    if (tab === "today") {
+      for (const day of feed.days || []) {
+        const items = (day.items || []).filter(i => !dec[String(i.id)]);
+        items.forEach(i => index.set(String(i.id), i));
+        counts.today += items.length;
+        if (items.length) {
+          html += `<div class="day">${esc(new Date(day.date + "T12:00:00").toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" }))}</div>`;
+          html += `<div class="grid">${items.map(i => card(i, "today")).join("")}</div>`;
+        }
+      }
+      if (!counts.today) html = `<div class="empty">Ya revisaste todo. Mañana a las 6:00 llegan más.</div>`;
+    }
+    const all = Object.values(dec);
+    for (const k of ["save", "printed", "discard"]) counts[k] = all.filter(d => d.action === k).length;
+    if (tab !== "today") {
+      counts.today = (feed.days || []).reduce((n, d) => n + (d.items || []).filter(i => !dec[String(i.id)]).length, 0);
+      const items = all.filter(d => d.action === tab).sort((a, b) => (b.ts || "").localeCompare(a.ts || ""));
+      items.forEach(i => index.set(String(i.id), i));
+      html = items.length ? `<div class="grid">${items.map(i => card(i, tab)).join("")}</div>`
+                          : `<div class="empty">Nada por aquí todavía.</div>`;
+    }
+    for (const k in counts) $("#c-" + k).textContent = counts[k] ? counts[k] : "";
+    $("#list").innerHTML = html;
+    document.querySelectorAll("nav button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === tab));
+  }
+
+  $("#list").addEventListener("click", e => {
+    const b = e.target.closest("button[data-action]");
+    if (!b) return;
+    const id = b.closest(".card").dataset.id;
+    const item = index.get(id);
+    if (!item) return;
+    const a = b.dataset.action || null;
+    decide(item, a);
+    toast({ save: "Guardado para imprimir", discard: "Descartado", printed: "Marcado como impreso" }[a] || "De vuelta en Nuevos");
+  });
+  document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => {
+    tab = b.dataset.tab; ls.set("tab", tab); render(); window.scrollTo(0, 0);
+  }));
+  $("#settingsBtn").addEventListener("click", () => { $("#setup").hidden = !$("#setup").hidden; });
+  $("#tokenSave").addEventListener("click", async () => {
+    token = $("#tokenInput").value.trim(); ls.set("gh_token", token || null);
+    $("#tokenInput").value = ""; $("#setup").hidden = true;
+    await loadState(); render(); toast(token ? "Token guardado" : "Token borrado");
+  });
+  window.addEventListener("beforeunload", e => { if (pending.size && token) { flush(); e.preventDefault(); } });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) flush(); });
+
+  (async () => {
+    if (!token) $("#setup").hidden = false;
+    try { await Promise.all([loadFeed(), loadState()]); } catch { toast("No se pudieron cargar los datos"); }
+    const upd = feed.updated ? new Date(feed.updated) : null;
+    $("#updated").textContent = upd ? `Actualizado ${upd.toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })}` : "Aún sin datos";
+    render();
+  })();
+})();
+</script>
+</body>
+</html>
