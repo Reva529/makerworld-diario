@@ -206,7 +206,8 @@ details summary{cursor:pointer;color:var(--muted)}
   }
 
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
-  const hours = h => h < 1 ? `${Math.round(h * 60)} min` : `${(+h).toFixed(1)} h`;
+  const thumb = u => /bblmw\.com\//.test(u || "") && !/[?]/.test(u) ? `${u}?x-oss-process=image/resize,w_640/format,webp` : (u || "");
+  const hours = h =>h < 1 ? `${Math.round(h * 60)} min` : `${(+h).toFixed(1)} h`;
 
   function card(item, mode) {
     const amsChip = item.ams ? `<span class="chip ams">AMS</span>` : `<span class="chip ok">Sin AMS</span>`;
@@ -217,7 +218,7 @@ details summary{cursor:pointer;color:var(--muted)}
       discard: [["save", "Guardar", "primary"], [null, "Reconsiderar", ""]],
     }[mode];
     return `<article class="card" data-id="${esc(item.id)}">
-      <a class="img" href="${esc(item.url)}" target="_blank" rel="noopener"><img loading="lazy" src="${esc(item.cover)}" alt=""></a>
+      <a class="img" href="${esc(item.url)}" target="_blank" rel="noopener"><img loading="lazy" src="${esc(thumb(item.cover))}" alt=""></a>
       <div class="body">
         <a class="title" href="${esc(item.url)}" target="_blank" rel="noopener">${esc(item.title)}</a>
         <div class="meta">${esc(item.creator)} · ${esc(item.category || "")}</div>
