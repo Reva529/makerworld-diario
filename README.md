@@ -4,7 +4,7 @@ Cada día a las 6:00 (hora del centro de México) una tarea de GitHub Actions bu
 nuevos y en tendencia de **Hobby & DIY** y **Toys & Games** en MakerWorld, y elige 20 que:
 
 - tienen un perfil de impresión para **Bambu A1** (o A1 mini), y
-- no necesitan AMS, o si lo necesitan, imprimen en **7 horas o menos**.
+- sin AMS imprimen en **10 horas o menos**, o con AMS en **7 horas o menos**.
 
 La página (GitHub Pages, carpeta `docs/`) muestra las tarjetas con foto. Con **Guardar** y
 **Descartar** la app aprende tus gustos (etiquetas, palabras del título, categorías, autores).

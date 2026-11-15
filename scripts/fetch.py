@@ -31,6 +31,7 @@ CATEGORIES = {300: "Hobby & DIY", 800: "Toys & Games"}
 PICKS_PER_DAY = 20
 PRINTERS_OK = {"A1", "A1 mini"}       # perfiles que caben en la A1
 MAX_AMS_HOURS = 7.0                    # con AMS, solo si dura <= 7 h
+MAX_NOAMS_HOURS = 10.0                 # sin AMS, solo si dura <= 10 h
 MIN_AGE_HOURS = 18                     # dejar que acumule likes antes de juzgar
 MAX_AGE_DAYS = 5                       # diseños "nuevos"
 TRENDING_MAX_AGE_DAYS = 30             # tendencias recientes
@@ -201,7 +202,7 @@ def best_a1_profile(design_id):
         ams = bool(inst.get("needAms"))
         if hours <= 0:
             continue
-        if ams and hours > MAX_AMS_HOURS:
+        if hours > (MAX_AMS_HOURS if ams else MAX_NOAMS_HOURS):
             continue
         plates = len(mi.get("plates") or []) or 1
         cand = {
